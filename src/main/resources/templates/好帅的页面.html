@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>量子科技系统</title>
+    <style>
+        /* 全局样式重置 */
+        /* 全局样式重置 */
+        * {
+            margin: 0; /* 清除默认外边距 */
+            padding: 0; /* 清除默认内边距 */
+            box-sizing: border-box; /* 使用border-box盒模型 */
+            font-family: 'Roboto', sans-serif; /* 设置默认字体 */
+        }
+
+        /* 主体背景样式 */
+        body {
+            min-height: 100vh; /* 最小高度为视口高度 */
+            background: linear-gradient(-45deg,  #120330, #100520, #05023b, #020a1b); /* 45度角渐变背景 */
+            background-size: 400% 400%; /* 背景尺寸放大4倍以实现动画效果 */
+            animation: gradientBG 5s ease infinite; /* 背景渐变动画 */
+            display: flex; /* 使用flex布局 */
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            overflow: hidden; /* 隐藏溢出内容 */
+        }
+        /* 背景渐变动画定义 */
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; } /* 动画开始位置 */
+            50% { background-position: 100% 50%; } /* 动画中间位置 */
+            100% { background-position: 0% 50%; } /* 动画结束位置 */
+        }
+
+        /* 赛博朋克风格边框 */
+        /* 使用渐变背景和动画创造流动边框效果 */
+        .cyber-border {
+            position: relative; /* 相对定位 */
+            background: linear-gradient(45deg, #00f7ff, #0051ff, #ae00ff); /* 45度角三色渐变 */
+            padding: 2px; /* 内边距用于显示边框效果 */
+            border-radius: 12px; /* 圆角边框 */
+            animation: borderFlow 20s linear infinite; /* 边框流动动画 */
+        }
+
+        /* 登录卡片样式 */
+        /* 半透明背景配合模糊效果创造玻璃质感 */
+        .login-card {
+            background: rgba(12, 20, 36, 0.95); /* 深蓝色半透明背景 */
+            backdrop-filter: blur(12px); /* 背景模糊效果 */
+            border-radius: 10px; /* 圆角 */
+            padding: 40px 50px; /* 内边距 */
+            width: 420px; /* 固定宽度 */
+            position: relative; /* 相对定位 */
+            box-shadow: 0 0 30px rgba(0, 81, 255, 0.2); /* 蓝色阴影效果 */
+        }
+
+        /* 发光效果元素 */
+        /* 使用径向渐变和模糊滤镜创造光晕效果 */
+        .glow-effect {
+            position: absolute; /* 绝对定位 */
+            width: 200px; /* 宽度 */
+            height: 200px; /* 高度 */
+            background: radial-gradient(circle, rgba(0, 81, 255, 0.4), transparent); /* 蓝色径向渐变 */
+            filter: blur(60px); /* 模糊效果增强光晕 */
+            z-index: -1; /* 置于底层 */
+        }
+
+        /* 左侧发光效果定位 */
+        .glow-left {
+            top: -80px; /* 向上偏移80px */
+            left: -80px; /* 向左偏移80px */
+        }
+
+        /* 右侧发光效果定位 */
+        .glow-right {
+            bottom: -80px; /* 向下偏移80px */
+            right: -80px; /* 向右偏移80px */
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #00f7ff; /* 青色文字 */
+            text-align: center; /* 居中 */
+            font-size: 28px; /* 字体大小 */
+            margin-bottom: 40px; /* 下边距 */
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3); /* 文字发光效果 */
+            letter-spacing: 2px; /* 字间距 */
+        }
+
+        /* 输入框组样式 */
+        .input-group {
+            margin-bottom: 30px; /* 下边距 */
+            position: relative; /* 相对定位用于标签动画 */
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 81, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #00f7ff;
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.2);
+            background: rgba(0, 247, 255, 0.03);
+        }
+
+        .input-group label {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus + label,
+        .input-group input:valid + label {
+            top: -8px;
+            left: 10px;
+            font-size: 12px;
+            color: #00f7ff;
+            background: #0a0e17;
+            padding: 0 5px;
+        }
+
+        .cyber-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #0051ff, #ae00ff);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(174, 0, 255, 0.3);
+        }
+
+        .cyber-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent, 
+                rgba(255,255,255,0.2), 
+                transparent);
+            transform: rotate(45deg);
+            animation: buttonGlow 3s infinite;
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #00f7ff); }
+            3% { background-position: 3% 53%; background: linear-gradient(40deg, #00d7ff, #0051ff, #00d7ff); }
+            6% { background-position: 6% 56%; background: linear-gradient(35deg, #00c3ff, #0051ff, #00c3ff); }
+            9% { background-position: 9% 59%; background: linear-gradient(30deg, #00a2ff, #0051ff, #00a2ff); }
+            12% { background-position: 12% 62%; background: linear-gradient(25deg, #0080ff, #0051ff, #0080ff); }
+            15% { background-position: 15% 65%; background: linear-gradient(20deg, #0051ff, #0080ff, #0051ff); }
+            18% { background-position: 18% 68%; background: linear-gradient(15deg, #0051ff, #00a2ff, #0051ff); }
+            21% { background-position: 21% 71%; background: linear-gradient(10deg, #0051ff, #00c3ff, #0051ff); }
+            24% { background-position: 24% 74%; background: linear-gradient(5deg, #00f7ff, #0051ff, #ae00ff); }
+            27% { background-position: 27% 77%; background: linear-gradient(0deg, #00a2ff, #0051ff, #7d00ff); }
+            30% { background-position: 30% 80%; background: linear-gradient(-5deg, #0051ff, #7d00ff, #0051ff); }
+            33% { background-position: 33% 83%; background: linear-gradient(-10deg, #7d00ff, #0051ff, #ae00ff); }
+            36% { background-position: 36% 86%; background: linear-gradient(-15deg, #ae00ff, #0051ff, #ae00ff); }
+            39% { background-position: 39% 89%; background: linear-gradient(-20deg, #7d00ff, #0051ff, #7d00ff); }
+            42% { background-position: 42% 92%; background: linear-gradient(-25deg, #7d00ff, #0051ff, #7d00ff); }
+            45% { background-position: 45% 95%; background: linear-gradient(-30deg, #0051ff, #7d00ff, #0051ff); }
+            48% { background-position: 48% 98%; background: linear-gradient(-35deg, #0051ff, #00a2ff, #0051ff); }
+            51% { background-position: 51% 101%; background: linear-gradient(-40deg, #0051ff, #00c3ff, #0051ff); }
+            54% { background-position: 54% 104%; background: linear-gradient(-45deg, #00a2ff, #0051ff, #00a2ff); }
+            57% { background-position: 57% 107%; background: linear-gradient(-50deg, #00c3ff, #0051ff, #00c3ff); }
+            60% { background-position: 60% 110%; background: linear-gradient(-55deg, #0051ff, #00f7ff, #0051ff); }
+            63% { background-position: 63% 113%; background: linear-gradient(-60deg, #00a2ff, #00f7ff, #00a2ff); }
+            66% { background-position: 66% 116%; background: linear-gradient(-65deg, #00f7ff, #0051ff, #00f7ff); }
+            69% { background-position: 69% 119%; background: linear-gradient(-70deg, #00d7ff, #0051ff, #00d7ff); }
+            72% { background-position: 72% 122%; background: linear-gradient(-75deg, #00c3ff, #0051ff, #00c3ff); }
+            75% { background-position: 75% 125%; background: linear-gradient(-80deg, #00a2ff, #0051ff, #00a2ff); }
+            78% { background-position: 78% 128%; background: linear-gradient(-85deg, #0080ff, #0051ff, #0080ff); }
+            81% { background-position: 81% 131%; background: linear-gradient(-90deg, #0051ff, #0080ff, #0051ff); }
+            84% { background-position: 84% 134%; background: linear-gradient(-95deg, #0051ff, #00a2ff, #0051ff); }
+            87% { background-position: 87% 137%; background: linear-gradient(-100deg, #0051ff, #00c3ff, #0051ff); }
+            90% { background-position: 90% 140%; background: linear-gradient(-105deg, #00f7ff, #0051ff, #ae00ff); }
+            93% { background-position: 93% 143%; background: linear-gradient(-110deg, #00a2ff, #0051ff, #7d00ff); }
+            96% { background-position: 96% 146%; background: linear-gradient(-115deg, #0051ff, #7d00ff, #0051ff); }
+            99% { background-position: 99% 149%; background: linear-gradient(-120deg, #7d00ff, #0051ff, #ae00ff); }
+            100% { background-position: 0% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #00f7ff); }
+        }
+
+        @keyframes buttonGlow {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        .holographic-line {
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                #00f7ff, 
+                #ae00ff, 
+                transparent);
+            margin: 30px 0;
+            opacity: 0.5;
+        }
+
+        .additional-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .additional-links a {
+            color: rgba(255,255,255,0.6);
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .additional-links a:hover {
+            color: #00f7ff;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+        }
+
+    </style>
+</head>
+<body>
+    <div class="cyber-border">
+        <div class="login-card">
+            <div class="glow-effect glow-left"></div>
+            <div class="glow-effect glow-right"></div>
+            <h1>LOGIN CENTER</h1>
+            
+            <form target="_blank">
+                <div class="input-group">
+                    <input type="text" required>
+                    <label>通行账号</label>
+                </div>
+                
+                <div class="input-group">
+                    <input type="password" required>
+                    <label>通行密码</label>
+                </div>
+
+                <div class="holographic-line"></div>
+                
+                <button type="submit" class="cyber-button">身份验证</button>
+            </form>
+
+            <div class="additional-links">
+                <a href="#">注册账户</a>
+                <a href="#">忘记密码</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

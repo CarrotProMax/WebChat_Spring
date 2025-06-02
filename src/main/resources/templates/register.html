@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户注册</title>
+  <style>
+    body {
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f7f7f7;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"],
+    input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    .button-group {
+      width: 100%; /* 新增 */
+      display: flex;
+      gap: 1rem; /* 保留间距 */
+      margin-top: 1rem;
+    }
+
+    button {
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.2s;
+      flex: 1; /* 确保等宽 */
+    }
+
+    .register-btn {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .register-btn:hover {
+      background: #45a049;
+    }
+
+    .return-btn {
+      background: #666;
+      color: white;
+    }
+
+    .return-btn:hover {
+      background: #555;
+    }
+    @media (max-width: 480px) {
+      .button-group {
+        flex-direction: row; /* 保持横向排列 */
+        gap: 0.5rem; /* 缩小间距 */
+      }
+    }
+    /* 新增错误提示样式 */
+    .error-message {
+      color: red;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .success-message {
+      color: green;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .avatar-preview {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 10px auto;
+      display: block;
+      border: 1px solid #ddd;
+    }
+
+    .preview-container {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .file-input-label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .file-input-info {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+  <script type="text/javascript" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+</head>
+<body>
+<div class="container">
+  <h1>用户注册</h1>
+  <div th:if="${error}" class="error-message">
+    <span th:text="${error}"></span>
+  </div>
+  <div th:if="${success}" class="success-message">
+    <span th:text="${success}"></span>
+  </div>
+  <form th:action="@{/register}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+      <input type="text"
+             id="uname"
+             name="username"
+             placeholder="请输入用户名"
+             required>
+    </div>
+    <div class="preview-container">
+      <img id="avatarPreview" class="avatar-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23ddd'/%3E%3Ctext x='50%' y='50%' font-family='Arial' font-size='14' fill='%23666' text-anchor='middle' dominant-baseline='middle'%3E头像预览%3C/text%3E%3C/svg%3E" alt="头像预览">
+    </div>
+    <div class="form-group file-input-wrapper">
+      <label for="avatar" class="file-input-label">选择头像</label>
+      <input type="file"
+             id="avatar"
+             name="avatar"
+             accept="image/jpeg,image/png"
+             required>
+      <p class="file-input-info">支持JPG/PNG格式，请选择任意照片进行注册</p>
+      <p class="file-input-info">除这张照片和您输入的姓名外本网站不会额外收集您的任何信息</p>
+      <div class="button-group">
+        <button type="button" onclick="function redirectToLogin() {
+          window.location.href = /*[[@{/login}]]*/ '/';
+        }
+        redirectToLogin()" class="return-btn">
+          &nbsp;返回登录
+        </button>
+        <button type="submit" class="register-btn">立即注册</button>
+      </div>
+    </div>
+  </form>
+</div>
+  <script type="text/javascript" th:src="@{/js/jquery-3.6.0.min.js}"></script>
+  <script>
+    // 图片预览功能
+    document.getElementById('avatar').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          document.getElementById('avatarPreview').src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 表单提交前验证
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      const username = document.getElementById('uname').value.trim();
+      if (!username) {
+        e.preventDefault();
+        alert('请输入用户名');
+        return;
+      }
+    });
+  </script>
+</body>
+</html>

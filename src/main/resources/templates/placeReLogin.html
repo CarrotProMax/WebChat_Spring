@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录已过期</title>
+    <style>
+        /* 全局样式重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        /* 主体背景样式 */
+        body {
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #120330, #100520, #05023b, #020a1b);
+            background-size: 400% 400%;
+            animation: gradientBG 5s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px; /* 添加内边距防止边缘溢出 */
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 赛博朋克风格边框 - 修改为更精确的尺寸控制 */
+        .cyber-border {
+            position: relative;
+            background: linear-gradient(45deg, #00f7ff, #0051ff, #ae00ff);
+            padding: 2px;
+            border-radius: 12px;
+            animation: borderFlow 20s linear infinite;
+            width: 100%; /* 改为100%宽度 */
+            max-width: 420px; /* 设置最大宽度与卡片一致 */
+        }
+
+        /* 提示卡片样式 - 精确匹配边框 */
+        .message-card {
+            background: rgba(12, 20, 36, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 10px;
+            padding: 40px 50px;
+            width: 100%; /* 改为100%填充边框 */
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 81, 255, 0.2);
+            text-align: center;
+        }
+
+        /* 发光效果元素 */
+        .glow-effect {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(0, 81, 255, 0.4), transparent);
+            filter: blur(60px);
+            z-index: -1;
+        }
+
+        .glow-left {
+            top: -80px;
+            left: -80px;
+        }
+
+        .glow-right {
+            bottom: -80px;
+            right: -80px;
+        }
+
+        /* 标题样式 */
+        h1 {
+            color: #00f7ff;
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        /* 提示信息样式 */
+        .message-text {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        /* 全息线样式 */
+        .holographic-line {
+            height: 2px;
+            background: linear-gradient(90deg,
+            transparent,
+            #00f7ff,
+            #ae00ff,
+            transparent);
+            margin: 30px 0;
+            opacity: 0.5;
+        }
+
+        /* 按钮样式 */
+        .cyber-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #0051ff, #ae00ff);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(174, 0, 255, 0.3);
+        }
+
+        .cyber-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg,
+            transparent,
+            rgba(255,255,255,0.2),
+            transparent);
+            transform: rotate(45deg);
+            animation: buttonGlow 3s infinite;
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #00f7ff); }
+            100% { background-position: 100% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #ae00ff); }
+        }
+
+        @keyframes buttonGlow {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+
+        /* 图标样式 */
+        .icon {
+            font-size: 50px;
+            color: #00f7ff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px rgba(0, 247, 255, 0.5);
+        }
+
+        /* 响应式基础设置 - 重构移动端样式 */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 15px; /* 减小内边距 */
+            }
+
+            .cyber-border {
+                width: 100%;
+                max-width: 100%; /* 允许扩展到最大可用宽度 */
+            }
+
+            .message-card {
+                padding: 25px 20px;
+            }
+
+            h1 {
+                font-size: 22px;
+                margin-bottom: 20px;
+            }
+
+            .message-text {
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+
+            .cyber-button {
+                padding: 12px;
+                font-size: 14px;
+            }
+
+            .icon {
+                font-size: 40px;
+                margin-bottom: 15px;
+            }
+
+            .holographic-line {
+                margin: 20px 0;
+            }
+
+            .glow-effect {
+                width: 120px;
+                height: 120px;
+                filter: blur(30px);
+            }
+
+            .glow-left {
+                top: -40px;
+                left: -40px;
+            }
+
+            .glow-right {
+                bottom: -40px;
+                right: -40px;
+            }
+        }
+
+        @media screen and (min-width: 769px) {
+            .cyber-border {
+                max-width: 420px; /* 保持桌面端固定宽度 */
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="cyber-border">
+    <div class="message-card">
+        <div class="glow-effect glow-left"></div>
+        <div class="glow-effect glow-right"></div>
+
+        <div class="icon">⏳</div>
+        <h1>登录已过期</h1>
+        <div class="message-text">
+            由于服务器长时间未检测到您使用页面，已自动下线，请返回登录页面重新登录
+        </div>
+
+        <div class="holographic-line"></div>
+
+        <a href="/index" class="cyber-button">返回登录页面</a>
+    </div>
+</div>
+</body>
+</html>

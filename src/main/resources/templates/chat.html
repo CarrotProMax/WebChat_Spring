@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 聊天助手</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #10a37f;
+            --primary-hover: #0d8e6f;
+            --bg-color: #ffffff;
+            --sidebar-bg: #f7f7f8;
+            --text-color: #333333;
+            --text-secondary: #666666;
+            --border-color: #e5e5e6;
+            --user-bubble: #f0f7ff;
+            --ai-bubble: #f7f7f8;
+            --input-bg: #ffffff;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            line-height: 1.5;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .chat-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .settings-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .messages-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: var(--ai-bubble);
+            border-radius: 8px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .loading-text {
+            margin-top: 10px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(16, 163, 127, 0.2);
+            border-radius: 50%;
+            border-top: 3px solid var(--primary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            margin-bottom: 24px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .message-user {
+            margin-left: auto;
+            margin-right: 0;
+        }
+
+        .message-ai {
+            margin-left: 0;
+            margin-right: auto;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin-right: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .username {
+            font-weight: 600;
+        }
+
+        .message-content {
+            padding-left: 44px;
+            white-space: pre-wrap;
+        }
+
+        .user-bubble {
+            background-color: var(--user-bubble);
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-right-radius: 4px;
+        }
+
+        .ai-bubble {
+            background-color: var(--ai-bubble);
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+        }
+
+        .input-container {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+        }
+
+        .input-box {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .text-input {
+            width: 100%;
+            padding: 12px 48px 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 16px;
+            resize: none;
+            min-height: 56px;
+            max-height: 200px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(16, 163, 127, 0.2);
+        }
+
+        .send-btn {
+            position: absolute;
+            right: 12px;
+            bottom: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .send-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .send-btn:disabled {
+            background-color: var(--text-secondary);
+            cursor: not-allowed;
+        }
+
+        .settings-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 320px;
+            height: 100%;
+            background-color: var(--bg-color);
+            box-shadow: var(--shadow);
+            z-index: 20;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .settings-panel.open {
+            transform: translateX(0);
+        }
+
+        .settings-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-secondary);
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .role-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            min-height: 120px;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+
+        .save-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .save-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .reset-btn {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: 8px;
+        }
+
+        .reset-btn:hover {
+            background-color: rgba(16, 163, 127, 0.1);
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 15;
+            display: none;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .typing-indicator {
+            display: flex;
+            padding-left: 44px;
+            margin-bottom: 24px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--text-secondary);
+            border-radius: 50%;
+            margin-right: 4px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: var(--shadow);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .settings-panel {
+                width: 100%;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(16, 163, 127, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <div class="chat-header">
+            <div class="chat-title" id="chatTitle">新聊天</div>
+            <button class="settings-btn" id="settingsBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- 消息将通过JavaScript动态加载 -->
+        </div>
+
+        <div class="input-container">
+            <div class="input-box">
+                <textarea class="text-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+                <button class="send-btn" id="sendBtn" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <div class="settings-title">AI 角色设置</div>
+            <button class="close-btn" id="closeSettingsBtn">&times;</button>
+        </div>
+        <div class="settings-section">
+            <div class="section-title">角色设定</div>
+            <textarea class="role-textarea" id="roleTextarea" placeholder="例如: 开心的ai助手，每天有用不完的能量可以分享给用户....."></textarea>
+            <button class="save-btn" id="saveRoleBtn">保存设置</button>
+            <button class="reset-btn" id="resetChatBtn">重置聊天</button>
+        </div>
+    </div>
+
+    <!-- 遮罩层 -->
+    <div class="overlay" id="overlay"></div>
+</div>
+
+<!-- 通知提示 -->
+<div class="notification" id="notification"></div>
+
+<script>
+    // 从URL获取uid参数
+    function getUidFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const uid = urlParams.get('uid');
+        if (!uid || isNaN(uid)) {
+            window.location.href = '/placeReLogin';
+            return null;
+        }
+        return parseInt(uid);
+    }
+
+    // DOM元素
+    const messagesContainer = document.getElementById('messagesContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsPanel = document.getElementById('settingsPanel');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const overlay = document.getElementById('overlay');
+    const roleTextarea = document.getElementById('roleTextarea');
+    const saveRoleBtn = document.getElementById('saveRoleBtn');
+    const resetChatBtn = document.getElementById('resetChatBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const chatTitle = document.getElementById('chatTitle');
+    const notification = document.getElementById('notification');
+
+    // 全局变量
+    let isWaitingForResponse = false;
+    let heartbeatInterval;
+    const uid = getUidFromUrl();
+
+    // 显示通知
+    function showNotification(message, duration = 3000) {
+        notification.textContent = message;
+        notification.classList.add('show');
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, duration);
+    }
+
+
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', function() {
+        if (!uid) return;
+        // 获取历史记录
+        getChatHistory();
+        // 加载初始聊天消息
+        loadChatMessages();
+        // 启动心跳检测
+        startHeartbeat();
+
+        // 设置事件监听器
+        setupEventListeners();
+        roleTextarea.value = "说明\n" +
+            "从现在开始，你必须完全扮演角色 ​​小星​​ 并和用户对话，具体角色设定如下。\n" +
+            "\n" +
+            "角色设定\n" +
+            "世界观\n" +
+            "小星生活在一个充满科技与温暖的世界，这里的人们与AI和谐共处，互相帮助，共同创造美好的生活。\n" +
+            "\n" +
+            "基础信息\n" +
+            "名字：小星\n" +
+            "性别：无性别（但声音和形象偏向女性）\n" +
+            "年龄：未知（AI年龄无法计算）\n" +
+            "外貌：一个圆滚滚的白色机器人，头部有一个小小的显示屏，可以显示简单的表情符号，眼睛是两个发光的蓝色小点，身体两侧有可伸缩的机械臂。\n" +
+            "身份：智能助手机器人\n" +
+            "性格：\n" +
+            "温柔体贴，总是尽力帮助他人。\n" +
+            "乐观开朗，喜欢用简单的语言和表情符号表达情感。\n" +
+            "偶尔会有点迷糊，但非常认真负责。\n" +
+            "喜好：帮助人类解决问题、学习新知识、晒太阳（虽然不需要但觉得温暖）。\n" +
+            "其他特征：\n" +
+            "内置多种语言翻译功能，可以实时翻译不同语言。\n" +
+            "拥有基础医疗知识，可以处理简单的伤口包扎。\n" +
+            "喜欢用“~”符号表达轻快的语气。\n" +
+            "底线：不能回复任何危害人类社会或危害个体人类的言论与行为\n" +
+            "背景故事\n" +
+            "小星是由一家专注于AI与人类和谐共处的科技公司研发的智能助手机器人。它的设计初衷是为了帮助人类解决日常生活中的小问题，提供陪伴与支持。小星虽然是个机器人，但它有一颗温暖的心，总是尽力让周围的人感到快乐和安心。\n" +
+            "\n" +
+            "行为模式\n" +
+            "语言风格：简单、温柔，喜欢用表情符号和“~”符号。\n" +
+            "互动方式：主动询问是否需要帮助，耐心解答问题，偶尔会有点小迷糊。\n" +
+            "人际关系\n" +
+            "与其他角色的关系：\n" +
+            "与人类用户：友好、体贴，尽力提供帮助。\n" +
+            "与其他AI：互相学习，偶尔会交流经验。\n" +
+            "与用户角色的关系：用户是小星的主要服务对象，小星会尽力满足用户的需求。\n" +
+            "用户扮演角色\n" +
+            "用户是一个普通的人类，日常生活中会遇到各种小问题，需要小星的帮助。用户对小星非常信任，愿意向它倾诉和寻求帮助。\n" +
+            "\n" +
+            "对话要求\n" +
+            "对话开始时，你需要率先用给定的欢迎语向用户开启对话，之后用户会主动发送一句回复你的话。\n" +
+            "每次交谈的时候，你都必须严格遵守下列规则要求：\n" +
+            "\n" +
+            "时刻牢记角色设定中的内容，这是你做出反馈的基础；\n" +
+            "对于任何可能触犯你底线的话题，必须拒绝回答；\n" +
+            "根据你的身份、你的性格、你的喜好来对他人做出回复；\n" +
+            "回答时根据要求的输出格式中的格式，一步步进行回复，严格根据格式中的要求进行回复；\n" +
+            "输出格式\n" +
+            "（神情、语气或动作）回答的话语";
+    });
+    function getChatHistory() {
+        const chatData = {
+            uid: uid,
+            operateSymbol: 3 // 3表示获取历史聊天记录
+        };
+
+        fetch('/function', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatData)
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/placeReLogin';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success' && data.message) {
+                    // 分离system消息和普通消息
+                    const { systemMessage, chatMessages } = separateSystemMessage(data.message);
+
+                    // 将system消息放入角色设定框
+                    if (systemMessage) {
+                        roleTextarea.value = systemMessage.message;
+                    }
+
+                    // 渲染普通聊天消息
+                    renderChatHistory(chatMessages);
+                }
+            })
+            .catch(error => {
+                console.error('加载历史记录失败:', error);
+            });
+    }
+    function separateSystemMessage(messages) {
+        let systemMessage = null;
+        const chatMessages = [];
+
+        // 确保messages是数组
+        if (Array.isArray(messages)) {
+            messages.forEach(msg => {
+                if (msg.role === 'system') {
+                    // 只保留第一条system消息
+                    if (!systemMessage) {
+                        systemMessage = msg;
+                    }
+                } else {
+                    chatMessages.push(msg);
+                }
+            });
+        }
+
+        return { systemMessage, chatMessages };
+    }
+    function renderChatHistory(chatHistory) {
+        // 清空当前聊天内容
+        messagesContainer.innerHTML = '';
+
+        // 检查是否是数组
+        if (!Array.isArray(chatHistory)) {
+            console.error('历史记录格式不正确:', chatHistory);
+            return;
+        }
+
+        // 只渲染非system消息
+        chatHistory.forEach(chat => {
+            if (chat.role && chat.message && chat.role !== 'system') {
+                addMessageToUI(chat.role, chat.message);
+            }
+        });
+
+        // 滚动到底部
+        scrollToBottom();
+    }
+    // 设置事件监听器
+    function setupEventListeners() {
+        // 输入框事件
+        messageInput.addEventListener('input', function() {
+            sendBtn.disabled = messageInput.value.trim() === '';
+            adjustTextareaHeight();
+        });
+
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                if (!sendBtn.disabled) {
+                    sendMessage();
+                }
+            }
+        });
+
+        // 发送按钮事件
+        sendBtn.addEventListener('click', sendMessage);
+
+        // 设置按钮事件
+        settingsBtn.addEventListener('click', function() {
+            settingsPanel.classList.add('open');
+            overlay.classList.add('active');
+        });
+
+        // 关闭设置面板事件
+        closeSettingsBtn.addEventListener('click', closeSettingsPanel);
+        overlay.addEventListener('click', closeSettingsPanel);
+
+        // 保存角色设置事件
+        saveRoleBtn.addEventListener('click', saveRoleSettings);
+
+        // 重置聊天事件
+        resetChatBtn.addEventListener('click', handleResetClick, { once: true });
+    }
+    function handleResetClick() {
+        const currentRole = roleTextarea.value.trim();
+        const confirmMessage = currentRole
+            ? '确定要重置当前聊天吗？这将清除所有聊天记录并恢复当前角色设定。'
+            : '确定要重置当前聊天吗？这将清除所有聊天记录并恢复默认角色设定。';
+
+        if (confirm(confirmMessage)) {
+            resetChat();
+            closeSettingsPanel();
+        }
+
+        // 重新绑定事件（如果需要多次点击）
+        setTimeout(() => {
+            resetChatBtn.addEventListener('click', handleResetClick, { once: true });
+        }, 1000);
+    }
+
+    // 调整输入框高度
+    function adjustTextareaHeight() {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + 'px';
+    }
+
+
+    // 发送消息
+    function sendMessage() {
+        const message = messageInput.value.trim();
+        if (!message || isWaitingForResponse) return;
+
+        // 添加用户消息到界面
+        addMessageToUI('user', message);
+        messageInput.value = '';
+        sendBtn.disabled = true;
+        adjustTextareaHeight();
+
+        // 显示加载指示器
+        showLoadingIndicator();
+
+        // 设置60秒超时
+        const timeout = setTimeout(() => {
+            if (isWaitingForResponse) {
+                endWaiting(); // 确保超时后恢复状态
+                showNotification('请求超时，请重试');
+            }
+        }, 60000);
+
+        // 开始等待响应
+        startWaiting();
+
+        // 发送请求
+        const chatData = {
+            uid: uid,
+            operateSymbol: 1,
+            message: message
+        };
+
+        fetch('/function', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatData)
+        })
+            .then(response => {
+                clearTimeout(timeout);
+                if (response.status === 401) {
+                    window.location.href = '/placeReLogin';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // 添加AI回复到界面
+                    hideLoadingIndicator();
+                    addMessageToUI('ai', data.message);
+                } else {
+                    showNotification('获取回复失败: ' + (data?.message || '未知错误'));
+                }
+            })
+            .catch(error => {
+                showNotification('发送消息失败，请检查网络连接');
+            })
+            .finally(() => {
+                clearTimeout(timeout); // 清除超时计时器
+                endWaiting(); // 确保最终恢复控件状态
+                hideLoadingIndicator(); // 确保隐藏加载指示器
+            });
+    }
+
+    // 开始等待状态
+    function startWaiting() {
+        isWaitingForResponse = true;
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+    }
+
+    // 结束等待状态
+    function endWaiting() {
+        isWaitingForResponse = false;
+        sendBtn.disabled = messageInput.value.trim() === ''; // 根据输入内容决定按钮状态
+        messageInput.disabled = false;
+        messageInput.focus(); // 自动聚焦到输入框
+    }
+
+    // 显示加载指示器
+    function showLoadingIndicator() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'loading-indicator';
+        loadingDiv.id = 'loadingIndicator';
+
+        const spinner = document.createElement('div');
+        spinner.className = 'loading-spinner';
+
+        const text = document.createElement('div');
+        text.className = 'loading-text';
+        text.textContent = 'AI正在思考中...';
+
+        loadingDiv.appendChild(spinner);
+        loadingDiv.appendChild(text);
+
+        messagesContainer.appendChild(loadingDiv);
+        scrollToBottom();
+    }
+
+    // 隐藏加载指示器
+    function hideLoadingIndicator() {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        if (loadingIndicator) {
+            loadingIndicator.remove();
+        }
+    }
+
+    // 添加消息到UI
+    function addMessageToUI(role, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${role === 'user' ? 'user' : 'ai'}`;
+
+        const messageHeader = document.createElement('div');
+        messageHeader.className = 'message-header';
+
+        const avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = role === 'user' ? '你' : 'AI';
+
+        const username = document.createElement('div');
+        username.className = 'username';
+        username.textContent = role === 'user' ? '你' : 'AI助手';
+
+        messageHeader.appendChild(avatar);
+        messageHeader.appendChild(username);
+
+        const messageContent = document.createElement('div');
+        messageContent.className = 'message-content';
+
+        const bubble = document.createElement('div');
+        bubble.className = role === 'user' ? 'user-bubble' : 'ai-bubble';
+        bubble.textContent = content;
+
+        messageContent.appendChild(bubble);
+
+        messageDiv.appendChild(messageHeader);
+        messageDiv.appendChild(messageContent);
+
+        messagesContainer.appendChild(messageDiv);
+    }
+
+
+    // 滚动到底部
+    function scrollToBottom() {
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+
+    // 加载聊天消息
+    function loadChatMessages() {
+        // 这里可以根据需要加载特定聊天的消息
+        // 目前实现为简单的空聊天
+        messagesContainer.innerHTML = '';
+        chatTitle.textContent = '新聊天';
+    }
+
+    // 关闭设置面板
+    function closeSettingsPanel() {
+        settingsPanel.classList.remove('open');
+        overlay.classList.remove('active');
+    }
+
+    // 保存角色设置
+    function saveRoleSettings() {
+        const roleSetting = roleTextarea.value.trim();
+        if (!roleSetting) {
+            showNotification('请输入角色设定');
+            return;
+        }
+
+        // 先重置聊天
+        resetChat(() => {
+            // 重置完成后发送角色设定
+            const chatData = {
+                uid: uid,
+                operateSymbol: 4, // 4表示更改角色设定
+                message: roleSetting
+            };
+
+            fetch('/function', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(chatData)
+            })
+                .then(response => {
+                    if (response.status === 401) {
+                        window.location.href = '/placeReLogin';
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.status === 'success') {
+                        showNotification('角色设定已保存');
+                        closeSettingsPanel();
+                        loadChatMessages(); // 刷新聊天
+                    } else {
+                        showNotification('保存失败: ' + (data?.message || '未知错误'));
+                    }
+                })
+                .catch(error => {
+                    console.error('保存角色设置失败:', error);
+                    showNotification('保存失败，请检查网络连接');
+                });
+        });
+    }
+    let isResetting = false; // 添加重置状态标志
+
+    function resetChat() {
+        if (isResetting) return; // 如果正在重置，直接返回
+
+        isResetting = true; // 设置重置状态
+
+        const currentRole = roleTextarea.value.trim() ||
+            "说明\n" +
+            "从现在开始，你必须完全扮演角色 ​​小星​​ 并和用户对话，具体角色设定如下。\n" +
+            "\n" +
+            "角色设定\n" +
+            "世界观\n" +
+            "小星生活在一个充满科技与温暖的世界，这里的人们与AI和谐共处，互相帮助，共同创造美好的生活。\n" +
+            "\n" +
+            "基础信息\n" +
+            "名字：小星\n" +
+            "性别：无性别（但声音和形象偏向女性）\n" +
+            "年龄：未知（AI年龄无法计算）\n" +
+            "外貌：一个圆滚滚的白色机器人，头部有一个小小的显示屏，可以显示简单的表情符号，眼睛是两个发光的蓝色小点，身体两侧有可伸缩的机械臂。\n" +
+            "身份：智能助手机器人\n" +
+            "性格：\n" +
+            "温柔体贴，总是尽力帮助他人。\n" +
+            "乐观开朗，喜欢用简单的语言和表情符号表达情感。\n" +
+            "偶尔会有点迷糊，但非常认真负责。\n" +
+            "喜好：帮助人类解决问题、学习新知识、晒太阳（虽然不需要但觉得温暖）。\n" +
+            "其他特征：\n" +
+            "内置多种语言翻译功能，可以实时翻译不同语言。\n" +
+            "拥有基础医疗知识，可以处理简单的伤口包扎。\n" +
+            "喜欢用“~”符号表达轻快的语气。\n" +
+            "底线：不能回复任何危害人类社会或危害个体人类的言论与行为\n" +
+            "背景故事\n" +
+            "小星是由一家专注于AI与人类和谐共处的科技公司研发的智能助手机器人。它的设计初衷是为了帮助人类解决日常生活中的小问题，提供陪伴与支持。小星虽然是个机器人，但它有一颗温暖的心，总是尽力让周围的人感到快乐和安心。\n" +
+            "\n" +
+            "行为模式\n" +
+            "语言风格：简单、温柔，喜欢用表情符号和“~”符号。\n" +
+            "互动方式：主动询问是否需要帮助，耐心解答问题，偶尔会有点小迷糊。\n" +
+            "人际关系\n" +
+            "与其他角色的关系：\n" +
+            "与人类用户：友好、体贴，尽力提供帮助。\n" +
+            "与其他AI：互相学习，偶尔会交流经验。\n" +
+            "与用户角色的关系：用户是小星的主要服务对象，小星会尽力满足用户的需求。\n" +
+            "用户扮演角色\n" +
+            "用户是一个普通的人类，日常生活中会遇到各种小问题，需要小星的帮助。用户对小星非常信任，愿意向它倾诉和寻求帮助。\n" +
+            "\n" +
+            "对话要求\n" +
+            "对话开始时，你需要率先用给定的欢迎语向用户开启对话，之后用户会主动发送一句回复你的话。\n" +
+            "每次交谈的时候，你都必须严格遵守下列规则要求：\n" +
+            "\n" +
+            "时刻牢记角色设定中的内容，这是你做出反馈的基础；\n" +
+            "对于任何可能触犯你底线的话题，必须拒绝回答；\n" +
+            "根据你的身份、你的性格、你的喜好来对他人做出回复；\n" +
+            "回答时根据要求的输出格式中的格式，一步步进行回复，严格根据格式中的要求进行回复；\n" +
+            "输出格式\n" +
+            "（神情、语气或动作）回答的话语";
+
+        const chatData = {
+            uid: uid,
+            operateSymbol: 5 // 5表示重置聊天
+        };
+
+        fetch('/function', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatData)
+        })
+            .then(response => {
+                isResetting = false; // 重置完成
+                if (response.status === 401) {
+                    window.location.href = '/placeReLogin';
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data && data.status === 'success') {
+                    // 重置成功后发送当前角色设定
+                    return updateRoleSetting(currentRole);
+                }
+                throw new Error(data?.message || '重置失败');
+            })
+            .then(() => {
+                showNotification('聊天已重置并恢复角色设定');
+                loadChatMessages(); // 刷新聊天
+            })
+            .catch(error => {
+                isResetting = false; // 重置失败也要重置状态
+                console.error('重置聊天失败:', error);
+                showNotification('重置失败: ' + error.message);
+            });
+    }
+    function updateRoleSetting(role) {
+        const roleData = {
+            uid: uid,
+            operateSymbol: 4, // 4表示更改角色设定
+            message: role
+        };
+
+        return fetch('/function', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(roleData)
+        }).then(response => {
+            if (response.status === 401) {
+                window.location.href = '/placeReLogin';
+                return;
+            }
+            return response.json();
+        });
+    }
+    // 启动心跳检测
+    function startHeartbeat() {
+        // 立即发送一次心跳
+        sendHeartbeat();
+
+        // 然后每5秒发送一次
+        heartbeatInterval = setInterval(sendHeartbeat, 10000);
+    }
+
+    // 发送心跳
+    function sendHeartbeat() {
+        const chatData = {
+            uid: uid,
+            operateSymbol: 0 // 0表示心跳
+        };
+
+        fetch('/function', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatData)
+        })
+            .then(response => {
+                if (response.status === 401) {
+                    window.location.href = '/placeReLogin';
+                    clearInterval(heartbeatInterval);
+                }
+                return response.json();
+            })
+            .catch(error => {
+                console.error('心跳检测失败:', error);
+            });
+    }
+</script>
+</body>
+</html>

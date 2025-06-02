@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            min-height: 100vh; /* 最小高度为视口高度 */
+            background: linear-gradient(-45deg,  #120330, #100520, #05023b, #020a1b); /* 45度角渐变背景 */
+            background-size: 400% 400%; /* 背景尺寸放大4倍以实现动画效果 */
+            animation: gradientBG 5s ease infinite; /* 背景渐变动画 */
+            display: flex; /* 使用flex布局 */
+            justify-content: center; /* 水平居中 */
+            align-items: center; /* 垂直居中 */
+            overflow: hidden; /* 隐藏溢出内容 */
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; } /* 动画开始位置 */
+            50% { background-position: 100% 50%; } /* 动画中间位置 */
+            100% { background-position: 0% 50%; } /* 动画结束位置 */
+        }
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #00f7ff); }
+            3% { background-position: 3% 53%; background: linear-gradient(40deg, #00d7ff, #0051ff, #00d7ff); }
+            6% { background-position: 6% 56%; background: linear-gradient(35deg, #00c3ff, #0051ff, #00c3ff); }
+            9% { background-position: 9% 59%; background: linear-gradient(30deg, #00a2ff, #0051ff, #00a2ff); }
+            12% { background-position: 12% 62%; background: linear-gradient(25deg, #0080ff, #0051ff, #0080ff); }
+            15% { background-position: 15% 65%; background: linear-gradient(20deg, #0051ff, #0080ff, #0051ff); }
+            18% { background-position: 18% 68%; background: linear-gradient(15deg, #0051ff, #00a2ff, #0051ff); }
+            21% { background-position: 21% 71%; background: linear-gradient(10deg, #0051ff, #00c3ff, #0051ff); }
+            24% { background-position: 24% 74%; background: linear-gradient(5deg, #00f7ff, #0051ff, #ae00ff); }
+            27% { background-position: 27% 77%; background: linear-gradient(0deg, #00a2ff, #0051ff, #7d00ff); }
+            30% { background-position: 30% 80%; background: linear-gradient(-5deg, #0051ff, #7d00ff, #0051ff); }
+            33% { background-position: 33% 83%; background: linear-gradient(-10deg, #7d00ff, #0051ff, #ae00ff); }
+            36% { background-position: 36% 86%; background: linear-gradient(-15deg, #ae00ff, #0051ff, #ae00ff); }
+            39% { background-position: 39% 89%; background: linear-gradient(-20deg, #7d00ff, #0051ff, #7d00ff); }
+            42% { background-position: 42% 92%; background: linear-gradient(-25deg, #7d00ff, #0051ff, #7d00ff); }
+            45% { background-position: 45% 95%; background: linear-gradient(-30deg, #0051ff, #7d00ff, #0051ff); }
+            48% { background-position: 48% 98%; background: linear-gradient(-35deg, #0051ff, #00a2ff, #0051ff); }
+            51% { background-position: 51% 101%; background: linear-gradient(-40deg, #0051ff, #00c3ff, #0051ff); }
+            54% { background-position: 54% 104%; background: linear-gradient(-45deg, #00a2ff, #0051ff, #00a2ff); }
+            57% { background-position: 57% 107%; background: linear-gradient(-50deg, #00c3ff, #0051ff, #00c3ff); }
+            60% { background-position: 60% 110%; background: linear-gradient(-55deg, #0051ff, #00f7ff, #0051ff); }
+            63% { background-position: 63% 113%; background: linear-gradient(-60deg, #00a2ff, #00f7ff, #00a2ff); }
+            66% { background-position: 66% 116%; background: linear-gradient(-65deg, #00f7ff, #0051ff, #00f7ff); }
+            69% { background-position: 69% 119%; background: linear-gradient(-70deg, #00d7ff, #0051ff, #00d7ff); }
+            72% { background-position: 72% 122%; background: linear-gradient(-75deg, #00c3ff, #0051ff, #00c3ff); }
+            75% { background-position: 75% 125%; background: linear-gradient(-80deg, #00a2ff, #0051ff, #00a2ff); }
+            78% { background-position: 78% 128%; background: linear-gradient(-85deg, #0080ff, #0051ff, #0080ff); }
+            81% { background-position: 81% 131%; background: linear-gradient(-90deg, #0051ff, #0080ff, #0051ff); }
+            84% { background-position: 84% 134%; background: linear-gradient(-95deg, #0051ff, #00a2ff, #0051ff); }
+            87% { background-position: 87% 137%; background: linear-gradient(-100deg, #0051ff, #00c3ff, #0051ff); }
+            90% { background-position: 90% 140%; background: linear-gradient(-105deg, #00f7ff, #0051ff, #ae00ff); }
+            93% { background-position: 93% 143%; background: linear-gradient(-110deg, #00a2ff, #0051ff, #7d00ff); }
+            96% { background-position: 96% 146%; background: linear-gradient(-115deg, #0051ff, #7d00ff, #0051ff); }
+            99% { background-position: 99% 149%; background: linear-gradient(-120deg, #7d00ff, #0051ff, #ae00ff); }
+            100% { background-position: 0% 50%; background: linear-gradient(45deg, #00f7ff, #0051ff, #00f7ff); }
+        }
+
+        @keyframes buttonGlow {
+            0% { left: -100%; }
+            100% { left: 200%; }
+        }
+        /* 左侧发光效果定位 */
+        .glow-left {
+            top: -80px; /* 向上偏移80px */
+            left: -80px; /* 向左偏移80px */
+        }
+
+        /* 右侧发光效果定位 */
+        .glow-right {
+            bottom: -80px; /* 向下偏移80px */
+            right: -80px; /* 向右偏移80px */
+        }
+        .container {
+            position: relative; /* 相对定位 */
+            background: linear-gradient(45deg, #00f7ff, #0051ff, #ae00ff); /* 45度角三色渐变 */
+            padding: 2px; /* 内边距用于显示边框效果 */
+            border-radius: 12px; /* 圆角边框 */
+            animation: borderFlow 20s linear infinite; /* 边框流动动画 */
+        }
+        .login-card {
+            background: rgba(12, 20, 36, 0.95); /* 深蓝色半透明背景 */
+            backdrop-filter: blur(12px); /* 背景模糊效果 */
+            border-radius: 10px; /* 圆角 */
+            padding: 40px 50px; /* 内边距 */
+            width: 420px; /* 固定宽度 */
+            position: relative; /* 相对定位 */
+            box-shadow: 0 0 30px rgba(0, 81, 255, 0.2); /* 蓝色阴影效果 */
+        }
+        h1 {
+            color: #00f7ff; /* 青色文字 */
+            text-align: center; /* 居中 */
+            font-size: 28px; /* 字体大小 */
+            margin-bottom: 40px; /* 下边距 */
+            text-shadow: 0 0 10px rgba(0, 247, 255, 0.3); /* 文字发光效果 */
+            letter-spacing: 2px; /* 字间距 */
+        }
+
+        .form-group {
+            margin-bottom: 30px; /* 下边距 */
+            position: relative; /* 相对定位用于标签动画 */
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 81, 255, 0.3);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #00f7ff;
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.2);
+            background: rgba(0, 247, 255, 0.03);
+        }
+
+        .form-group label {
+            position: absolute;
+            left: 15px;
+            top: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus + label,
+        .form-group input:valid + label {
+            top: -8px;
+            left: 10px;
+            font-size: 12px;
+            color: #00f7ff;
+            background: #0a0e17;
+            padding: 0 5px;
+        }
+        .cyber-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #0051ff, #ae00ff);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+        }
+
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(174, 0, 255, 0.3);
+        }
+
+        .cyber-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg,
+            transparent,
+            rgba(255,255,255,0.2),
+            transparent);
+            transform: rotate(45deg);
+            animation: buttonGlow 3s infinite;
+        }
+        .error-message {
+            margin-top: -25px;
+            margin-bottom: 10px;
+            color: red;
+            text-align: center;
+        }
+        .success-message {
+            margin-top: -25px;
+            margin-bottom: 10px;
+            color: green;
+            text-align: center;
+        }
+        .button-container {
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-direction: row;
+        }
+        button {
+            width: 100%; /* 新增宽度设置 */
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        /* 响应式基础设置 */
+    </style>
+<!--    <script type="text/javascript" th:src="@{js/jquery-3.6.0.min.js}"></script>-->
+<!--    <script type="text/javascript">-->
+<!--        function login() {-->
+<!--            //获取输入的值uname为id-->
+<!--            var uname = $("#uname").val();-->
+<!--            $.ajax({-->
+<!--                //发送请求的URL字符串-->
+<!--                url : "/login",-->
+<!--                //定义回调响应的数据格式为JSON字符串，该属性可以省略-->
+<!--                dataType : "json",-->
+<!--                //请求类型-->
+<!--                type : "post",-->
+<!--                //定义发送请求的数据格式为JSON字符串-->
+<!--                contentType : "application/json",-->
+<!--                //data表示发送的数据-->
+<!--                data : JSON.stringify({uname:uname}),-->
+<!--                success: function(data) {-->
+<!--                    if (data.message === "success") {-->
+<!--                        window.location.href = "/chat";-->
+<!--                    }-->
+<!--                    alert(data.message)-->
+
+<!--                },-->
+<!--                error:function(){-->
+<!--                    alert("数据发送失败");-->
+<!--                }-->
+<!--            });-->
+<!--        }-->
+<!--    </script>-->
+</head><!--上面的script原来的使用alert的处理逻辑-->
+<body>
+<div class="container">
+    <div class="login-card">
+        <div class="glow-effect glow-left"></div>
+        <div class="glow-effect glow-right"></div>
+        <h1>用户登录</h1>
+        <div th:if="${message}" class="error-message">
+            <span th:text="${message}"></span><!-- 这里是错误的信息-->
+        </div>
+        <div th:if="${success}" class="success-message">
+            <span th:text="${success}"></span><!-- 这里是成功的信息-->
+        </div>
+
+        <form th:action="@{/login}" method="post">
+            <div class="form-group">
+                <input type="text"
+                       id="uname"
+                       name="uname"
+                       required>
+                <label>请输入用户名</label>
+            </div>
+
+            <!-- 按钮容器 -->
+            <div class="button-container">
+                <!-- 登录按钮表单 -->
+                <form th:action="@{/login}" method="post">
+                    <button type="submit" class="cyber-button">
+                        <span class="glyphicon glyphicon-share"></span>
+                        &nbsp;登录
+                    </button>
+                </form>
+            </div>
+            <div class="button-container">
+                <!-- 注册按钮表单 -->
+                <form action="/register" method="get">
+                    <button type="submit" class="cyber-button">注册</button>
+                </form>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

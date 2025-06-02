@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>三栏布局</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "PingFang SC", "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body {
+            height: 100vh;
+            display: flex;
+        }
+        
+        /* 左侧栏 - 黑色背景 */
+        .left-sidebar {
+            width: 260px;
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #333;
+        }
+        
+        .sidebar-menu {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .menu-item:hover {
+            background-color: #333;
+        }
+        
+        .menu-item.active {
+            background-color: #333;
+        }
+        
+        .menu-item i {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        /* 中间栏 - 灰色背景 */
+        .middle-content {
+            flex: 1;
+            background-color: #f0f0f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .h2{
+            text-align: center;
+
+        }
+        .middle-content-lianxiren{
+            height: 65px;
+        }
+        
+        /* 右侧栏 - 白色背景 */
+        .right-sidebar {
+            width: 1000px;
+            background-color: #fff;
+            padding: 20px;
+            overflow-y: auto;
+            border-left: 1px solid #e0e0e0;
+        }
+        
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <!-- 左侧栏 -->
+    <div class="left-sidebar">
+        <div class="sidebar-header">
+            <h2>web-wchat</h2>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active">
+                <i class="fas fa-comment-alt"></i>
+                <span>聊天</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-user-friends"></i>
+                <span>联系人</span>
+            </div>
+            <div class="menu-item">
+                <i class="fas fa-cog"></i>
+                <span>设置</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 中间栏 -->
+    <div class="middle-content">
+        <h2 class="h2">联系人</h2>
+        <hr color="#ccc">
+        <div class="middle-content-lianxiren">
+        <p style="font-size: 20px;">小明</p>
+        <p style="font-size: 1%; color: #919191;">我明天想和你出去，去杭州玩....</p>
+        </div>
+        <hr color="#ccc">
+        
+    </div>
+    
+    <!-- 右侧栏 -->
+    <div class="right-sidebar">
+        <h2 class="h2">聊天</h2>
+       
+    </div>
+</body>
+</html>

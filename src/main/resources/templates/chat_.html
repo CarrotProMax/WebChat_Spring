@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebChat</title>
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --sidebar-width: 60px;
+            --middlebar-width: 250px;
+            --header-height: 60px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .chat-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #1e293b;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .sidebar-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: white;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .sidebar-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sidebar-btn.active {
+            background-color: var(--primary-color);
+        }
+
+        .middlebar {
+            width: var(--middlebar-width);
+            background-color: white;
+            border-right: 1px solid #e5e7eb;
+            transition: all 0.3s;
+            overflow-y: auto;
+        }
+
+        .middlebar.collapsed {
+            width: 0;
+            overflow: hidden;
+            border-right: none;
+        }
+
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #f3f4f6;
+        }
+
+        .chat-header {
+            height: var(--header-height);
+            background-color: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f3f4f6;
+        }
+
+        .message-input {
+            height: 80px;
+            background-color: white;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .contact-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .contact-item:hover {
+            background-color: #f3f4f6;
+        }
+
+        .contact-item.active {
+            background-color: #eef2ff;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .message {
+            max-width: 70%;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .message.received {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            margin-right: auto;
+        }
+
+        .message.sent {
+            background-color: var(--primary-color);
+            color: white;
+            margin-left: auto;
+        }
+
+        .message-time {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .message.sent .message-time {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .no-contacts {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6b7280;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .no-contacts-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #d1d5db;
+        }
+
+        .search-box {
+            padding: 15px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        @media (max-width: 768px) {
+            .middlebar {
+                position: absolute;
+                left: var(--sidebar-width);
+                top: 0;
+                bottom: 0;
+                z-index: 100;
+                box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            }
+
+            .middlebar.collapsed {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <!-- 左侧功能栏 -->
+    <div class="sidebar">
+        <button id="toggleMiddlebar" class="sidebar-btn">
+            <i class="bi bi-list"></i>
+        </button>
+        <button id="showContacts" class="sidebar-btn active">
+            <i class="bi bi-people"></i>
+        </button>
+    </div>
+
+    <!-- 中间栏 -->
+    <div class="middlebar" id="middlebar">
+        <div class="search-box">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="搜索联系人...">
+                <button class="btn btn-outline-secondary" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+        <div id="contactsList">
+            <!-- 联系人列表将通过JavaScript动态加载 -->
+            <div class="no-contacts">
+                <div class="no-contacts-icon">
+                    <i class="bi bi-people"></i>
+                </div>
+                <h5>暂无联系人</h5>
+                <p>点击上方按钮刷新或添加新联系人</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧聊天区 -->
+    <div class="chat-area">
+        <div class="chat-header">
+            <h5 id="currentContact" class="mb-0">请选择联系人开始聊天</h5>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <!-- 聊天消息将通过JavaScript动态加载 -->
+            <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="text-center text-muted">
+                    <i class="bi bi-chat-left-text" style="font-size: 48px;"></i>
+                    <h4 class="mt-3">选择联系人开始聊天</h4>
+                </div>
+            </div>
+        </div>
+        <div class="message-input">
+            <div class="input-group">
+                <input type="text" id="messageInput" class="form-control" placeholder="输入消息..." disabled>
+                <button id="sendButton" class="btn btn-primary" type="button" disabled>
+                    <i class="bi bi-send"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // 全局变量
+    let uid = null;
+    let currentContact = null;
+    let contacts = [];
+    let heartbeatInterval;
+    let refreshInterval;
+
+    // 从URL获取uid参数
+    function getUidFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('uid');
+    }
+
+    // 初始化页面
+    $(document).ready(function() {
+        uid = getUidFromUrl();
+        if (!uid) {
+            alert('用户ID未提供，请重新登录');
+            return;
+        }
+
+        // 初始化定时器
+        startHeartbeat();
+        startRefresh();
+
+        // 获取联系人列表
+        getContacts();
+
+        // 绑定事件
+        $('#toggleMiddlebar').click(toggleMiddlebar);
+        $('#showContacts').click(showContacts);
+        $('#sendButton').click(sendMessage);
+        $('#messageInput').keypress(function(e) {
+            if (e.which === 13) {
+                sendMessage();
+            }
+        });
+    });
+
+    // 切换中间栏显示/隐藏
+    function toggleMiddlebar() {
+        $('#middlebar').toggleClass('collapsed');
+    }
+
+    // 显示联系人列表
+    function showContacts() {
+        $('#showContacts').addClass('active');
+        getContacts();
+    }
+
+    // 发送AJAX请求
+    // 新版本函数，明确包含redirectHandler参数
+    function sendAjaxRequest(data, callback, redirectHandler) {
+        console.log('发送请求:', data);
+        $.ajax({
+            url: '/function',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                console.log('收到响应:', response);
+                // 处理重定向
+                if (response.redirect) {
+                    if (redirectHandler) {
+                        redirectHandler(response.redirect);
+                    } else {
+                        window.location.href = response.redirect;
+                    }
+                    return;
+                }
+
+                if (callback) callback(response);
+            },
+            error: function(xhr, status, error) {
+                console.error('请求失败:', error);
+
+                try {
+                    const errorResponse = JSON.parse(xhr.responseText);
+                    if (errorResponse.redirect) {
+                        if (redirectHandler) {
+                            redirectHandler(errorResponse.redirect);
+                        } else {
+                            window.location.href = errorResponse.redirect;
+                        }
+                        return;
+                    }
+                } catch (e) {
+                    console.log('无法解析错误响应');
+                }
+
+                // 原有的错误回调可以在这里添加
+            }
+        });
+    }
+
+    // 心跳检测
+    function startHeartbeat() {
+        heartbeatInterval = setInterval(function() {
+            sendAjaxRequest({
+                uid: uid,
+                operateSymbol: 0,
+                sendName: null,
+                receiveName: null,
+                message: null,
+                time: null
+            });
+        }, 4000);
+    }
+
+    // 刷新聊天
+    function startRefresh() {
+        refreshInterval = setInterval(function() {
+            if (currentContact) {
+                sendAjaxRequest({
+                    uid: uid,
+                    operateSymbol: 1,
+                    sendName: null,
+                    receiveName: currentContact,
+                    message: null,
+                    time: null
+                }, function(response) {
+                    if (response && response.length > 0) {
+                        displayMessages(response);
+                    }
+                });
+            }
+        }, 2000);
+    }
+
+    // 获取联系人列表
+    function getContacts() {
+        // 显示加载状态
+        $('#contactsList').html('<div class="text-center py-3"><i class="bi bi-arrow-repeat spin"></i> 加载中...</div>');
+
+        sendAjaxRequest({
+            uid: uid,
+            operateSymbol: 4,
+            sendName: null,
+            receiveName: null,
+            message: null,
+            time: null
+        }, function(response) {
+            if (response && typeof response === 'object' && Object.keys(response).length > 0) {
+                contacts = response;
+                renderContactsList();
+            } else {
+                showNoContactsUI();
+            }
+        }, function(error) {
+            // 错误处理
+            $('#contactsList').html('<div class="alert alert-danger">加载联系人失败，请重试</div>');
+        });
+    }
+
+
+    /**
+     * 显示无联系人时的UI
+     */
+    function showNoContactsUI() {
+        $('#contactsList').html(`
+        <div class="no-contacts">
+            <div class="no-contacts-icon">
+                <i class="bi bi-people"></i>
+            </div>
+            <h5>暂无联系人</h5>
+            <p>点击上方按钮刷新或添加新联系人</p>
+        </div>
+    `);
+    }
+
+    /**
+     * 渲染联系人列表
+     */
+    function renderContactsList() {
+        let html = '';
+
+        // 检查contacts是否有效
+        if (!contacts || typeof contacts !== 'object') {
+            showNoContactsUI();
+            return;
+        }
+
+        // 获取所有联系人键值对
+        const contactEntries = Object.entries(contacts);
+
+        // 如果没有联系人，显示空状态
+        if (contactEntries.length === 0) {
+            showNoContactsUI();
+            return;
+        }
+
+        // 遍历所有联系人
+        contactEntries.forEach(([username, avatarPath]) => {
+            // 处理头像路径 - 将本地路径转换为可访问的URL
+            // 假设后端已经提供了正确的可访问URL，如果没有，需要修改为正确的路径
+            // 这里只是示例，实际应根据你的服务器配置调整
+            let avatarUrl = avatarPath;
+
+            // 如果路径是本地文件路径，尝试转换为可访问的URL
+            if (avatarPath && avatarPath.startsWith('D:/head/')) {
+                // 这里需要根据你的实际服务器配置修改
+                // 例如，如果头像存储在服务器的/head目录下
+                avatarUrl = avatarPath.replace('D:/head/', '/head/');
+            }
+
+            // 生成头像HTML，如果有头像则使用头像，否则使用首字母
+            const avatarHtml = avatarUrl
+                ? `<img src="${avatarUrl}" alt="${username}" class="rounded-circle" style="width: 40px; height: 40px; object-fit: cover; margin-right: 10px;">`
+                : `<div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; margin-right: 10px;">
+                ${getInitials(username)}
+               </div>`;
+
+            // 构建联系人项HTML
+            html += `
+        <div class="contact-item ${currentContact === username ? 'active' : ''}" data-contact="${username}">
+            <div class="d-flex align-items-center">
+                ${avatarHtml}
+                <div>
+                    <h6 class="mb-0">${username}</h6>
+                    <small class="text-muted">最后消息时间</small>
+                </div>
+            </div>
+        </div>
+        `;
+        });
+
+        // 更新DOM
+        $('#contactsList').html(html);
+
+        // 绑定联系人点击事件
+        $('.contact-item').click(function() {
+            const contact = $(this).data('contact');
+            selectContact(contact);
+        });
+    }
+    /**
+     * 获取用户名的首字母或首字符
+     * @param {string} name 用户名
+     * @returns {string} 首字母或首字符
+     */
+    function getInitials(name) {
+        if (!name || name.length === 0) return '';
+        // 如果是中文，返回第一个字符
+        if (/[\u4e00-\u9fa5]/.test(name[0])) {
+            return name[0];
+        }
+        // 否则返回首字母大写
+        return name.charAt(0).toUpperCase();
+    }
+    // 选择联系人
+    function selectContact(contact) {
+        currentContact = contact;
+        $('.contact-item').removeClass('active');
+        $(`.contact-item[data-contact="${contact}"]`).addClass('active');
+
+        $('#currentContact').text(contact);
+        $('#messageInput').prop('disabled', false);
+        $('#sendButton').prop('disabled', false);
+
+        // 加载历史消息
+        sendAjaxRequest({
+            uid: uid,
+            operateSymbol: 3,
+            sendName: null,
+            receiveName: currentContact,
+            message: null,
+            time: null
+        }, function(response) {
+            if (response && response.length > 0) {
+                displayMessages(response);
+            } else {
+                $('#chatMessages').html(`
+                        <div class="d-flex justify-content-center align-items-center h-100">
+                            <div class="text-center text-muted">
+                                <i class="bi bi-chat-left-text" style="font-size: 48px;"></i>
+                                <h4 class="mt-3">开始与 ${contact} 聊天</h4>
+                            </div>
+                        </div>
+                    `);
+            }
+        });
+
+        // 在移动设备上自动隐藏中间栏
+        if (window.innerWidth <= 768) {
+            $('#middlebar').addClass('collapsed');
+        }
+    }
+
+    // 发送消息
+    function sendMessage() {
+        const messageText = $('#messageInput').val().trim();
+        if (!messageText) return;
+
+        const now = new Date();
+        const timestamp = now.toISOString();
+
+        sendAjaxRequest({
+            uid: uid,
+            operateSymbol: 2,
+            sendName: uid, // 假设uid也是发送者名称
+            receiveName: currentContact,
+            message: messageText,
+            time: timestamp
+        }, function(response) {
+            if (response && response.success) {
+                $('#messageInput').val('');
+                // 立即显示发送的消息
+                displayMessage({
+                    sendName: uid,
+                    receiveName: currentContact,
+                    message: messageText,
+                    time: timestamp
+                }, true);
+            }
+        });
+    }
+
+    // 显示单条消息
+    function displayMessage(message, isSent) {
+        const messageTime = new Date(message.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+        const messageElement = `
+                <div class="message ${isSent ? 'sent' : 'received'}">
+                    <div>${message.message}</div>
+                    <div class="message-time">${messageTime}</div>
+                </div>
+            `;
+
+        $('#chatMessages').append(messageElement);
+        scrollToBottom();
+    }
+
+    // 显示多条消息
+    function displayMessages(messages) {
+        let html = '';
+
+        messages.forEach(message => {
+            const isSent = message.sendName == uid;
+            const messageTime = new Date(message.time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            html += `
+                    <div class="message ${isSent ? 'sent' : 'received'}">
+                        <div>${message.message}</div>
+                        <div class="message-time">${messageTime}</div>
+                    </div>
+                `;
+        });
+
+        $('#chatMessages').html(html);
+        scrollToBottom();
+    }
+
+    // 滚动到底部
+    function scrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+</script>
+</body>
+</html>
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>Chat Application</title>-->
+<!--    <style>-->
+<!--        /* 基础样式 - 参考DeepSeek配色方案 */-->
+<!--        :root {-->
+<!--            &#45;&#45;bg-color: #f5f5f5;-->
+<!--            &#45;&#45;sidebar-bg: #2d2d2d;-->
+<!--            &#45;&#45;active-color: #4a90e2;-->
+<!--            &#45;&#45;text-color: #333;-->
+<!--            &#45;&#45;border-color: #e0e0e0;-->
+<!--        }-->
+
+<!--        /* 响应式布局 */-->
+<!--        body {-->
+<!--            margin: 0;-->
+<!--            padding: 0;-->
+<!--            font-family: 'Segoe UI', sans-serif;-->
+<!--            display: flex;-->
+<!--            height: 100vh;-->
+<!--            background: var(&#45;&#45;bg-color);-->
+<!--        }-->
+
+<!--        /* 左侧功能栏 */-->
+<!--        .sidebar {-->
+<!--            width: 60px;-->
+<!--            background: var(&#45;&#45;sidebar-bg);-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            align-items: center;-->
+<!--            padding: 20px 0;-->
+<!--            gap: 20px;-->
+<!--        }-->
+
+<!--        /* 中间栏（联系人/搜索） */-->
+<!--        .middle-bar {-->
+<!--            width: 260px;-->
+<!--            background: white;-->
+<!--            border-right: 1px solid var(&#45;&#45;border-color);-->
+<!--            transition: transform 0.3s;-->
+<!--        }-->
+
+<!--        /* 右侧聊天区 */-->
+<!--        .chat-area {-->
+<!--            flex: 1;-->
+<!--            display: flex;-->
+<!--            flex-direction: column;-->
+<!--            background: white;-->
+<!--        }-->
+
+<!--        /* 移动端适配 */-->
+<!--        @media (max-width: 768px) {-->
+<!--            .middle-bar {-->
+<!--                position: absolute;-->
+<!--                left: 60px;-->
+<!--                height: 100%;-->
+<!--                z-index: 100;-->
+<!--            }-->
+<!--            .middle-bar.collapsed {-->
+<!--                transform: translateX(-100%);-->
+<!--            }-->
+<!--        }-->
+
+<!--        /* 公共组件样式 */-->
+<!--        .button {-->
+<!--            padding: 10px;-->
+<!--            border: none;-->
+<!--            background: none;-->
+<!--            cursor: pointer;-->
+<!--            color: white;-->
+<!--            border-radius: 8px;-->
+<!--            transition: background 0.2s;-->
+<!--        }-->
+
+<!--        .button:hover {-->
+<!--            background: rgba(255,255,255,0.1);-->
+<!--        }-->
+
+<!--        .chat-message {-->
+<!--            max-width: 70%;-->
+<!--            padding: 12px;-->
+<!--            margin: 8px;-->
+<!--            border-radius: 12px;-->
+<!--            word-break: break-word;-->
+<!--        }-->
+
+<!--        /* 消息输入区 */-->
+<!--        .message-input {-->
+<!--            display: flex;-->
+<!--            padding: 20px;-->
+<!--            border-top: 1px solid var(&#45;&#45;border-color);-->
+<!--            background: white;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--&lt;!&ndash; 左侧功能栏 &ndash;&gt;-->
+<!--<div class="sidebar">-->
+<!--    <button class="button" onclick="toggleMiddleBar()">≡</button>-->
+<!--    <button class="button" onclick="showContacts()">👥</button>-->
+<!--    <button class="button" onclick="showSearch()">🔍</button>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; 中间栏 &ndash;&gt;-->
+<!--<div class="middle-bar" id="middleBar">-->
+<!--    &lt;!&ndash; 联系人列表 &ndash;&gt;-->
+<!--    <div id="contactsList" class="p-2">-->
+<!--        <h3 class="p-2">Contacts</h3>-->
+<!--        <div id="contactsContainer"></div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; 搜索区 &ndash;&gt;-->
+<!--    <div id="searchSection" style="display: none;">-->
+<!--        <div class="p-2">-->
+<!--            <input type="text" id="searchInput" placeholder="Search...">-->
+<!--            <button onclick="searchContacts()">Search</button>-->
+<!--        </div>-->
+<!--        <div id="searchResults"></div>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--&lt;!&ndash; 右侧聊天区 &ndash;&gt;-->
+<!--<div class="chat-area">-->
+<!--    <div id="chatHeader" class="p-2 border-bottom">Select a contact</div>-->
+<!--    <div id="chatMessages" class="flex-1 overflow-auto"></div>-->
+<!--    <div class="message-input">-->
+<!--        <input type="text" id="messageInput" style="flex:1" placeholder="Type a message...">-->
+<!--        <button onclick="sendMessage()">Send</button>-->
+<!--    </div>-->
+<!--</div>-->
+
+<!--<script>-->
+<!--    // 全局状态管理-->
+<!--    let currentUid = new URLSearchParams(window.location.search).get('uid');-->
+<!--    let currentContact = null;-->
+<!--    let contacts = {}; // {name: avatar}-->
+<!--    let chatHistory = {};-->
+
+<!--    // 初始化-->
+<!--    document.addEventListener('DOMContentLoaded', () => {-->
+<!--        getContacts(); // 初始化联系人-->
+<!--        startHeartbeat(); // 启动心跳-->
+<!--        startMessagePolling(); // 启动消息轮询-->
+<!--    });-->
+
+<!--    // 通信方法封装-->
+<!--    function sendRequest(operateSymbol, data = {}) {-->
+<!--        return fetch('/api/chat', {-->
+<!--            method: 'POST',-->
+<!--            headers: {'Content-Type': 'application/json'},-->
+<!--            body: JSON.stringify({-->
+<!--                uid: currentUid,-->
+<!--                operateSymbol: operateSymbol,-->
+<!--                ...data-->
+<!--            })-->
+<!--        }).then(res => res.json());-->
+<!--    }-->
+
+<!--    // 操作处理函数-->
+<!--    async function getContacts() {-->
+<!--        const response = await sendRequest(4);-->
+<!--        if (response) {-->
+<!--            contacts = response;-->
+<!--            renderContacts();-->
+<!--        }-->
+<!--    }-->
+
+<!--    // 界面操作函数-->
+<!--    function toggleMiddleBar() {-->
+<!--        document.getElementById('middleBar').classList.toggle('collapsed');-->
+<!--    }-->
+
+<!--    function showContacts() {-->
+<!--        document.getElementById('searchSection').style.display = 'none';-->
+<!--        document.getElementById('contactsList').style.display = 'block';-->
+<!--    }-->
+
+<!--    function showSearch() {-->
+<!--        document.getElementById('contactsList').style.display = 'none';-->
+<!--        document.getElementById('searchSection').style.display = 'block';-->
+<!--    }-->
+
+<!--    // 定时任务-->
+<!--    function startHeartbeat() {-->
+<!--        setInterval(() => {-->
+<!--            sendRequest(0, {sendName: currentUid});-->
+<!--        }, 5000);-->
+<!--    }-->
+
+<!--    function startMessagePolling() {-->
+<!--        setInterval(async () => {-->
+<!--            if (!currentContact) return;-->
+<!--            const messages = await sendRequest(1);-->
+<!--            if (messages.length > 0) {-->
+<!--                appendMessages(messages);-->
+<!--            }-->
+<!--        }, 2000);-->
+<!--    }-->
+
+<!--    // 消息处理-->
+<!--    async function sendMessage() {-->
+<!--        const input = document.getElementById('messageInput');-->
+<!--        const message = input.value.trim();-->
+<!--        if (!message) return;-->
+
+<!--        await sendRequest(2, {-->
+<!--            receiveName: currentContact,-->
+<!--            message: message,-->
+<!--            time: new Date().toISOString()-->
+<!--        });-->
+<!--        input.value = '';-->
+<!--    }-->
+
+<!--    // 渲染函数-->
+<!--    function renderContacts() {-->
+<!--        const container = document.getElementById('contactsContainer');-->
+<!--        container.innerHTML = Object.entries(contacts)-->
+<!--            .map(([name, avatar]) => `-->
+<!--                    <div class="contact-item" onclick="selectContact('${name}')">-->
+<!--                        <img src="${avatar}" width="40" height="40">-->
+<!--                        <span>${name}</span>-->
+<!--                    </div>-->
+<!--                `).join('');-->
+<!--    }-->
+
+<!--    function appendMessages(messages) {-->
+<!--        const container = document.getElementById('chatMessages');-->
+<!--        messages.forEach(msg => {-->
+<!--            const isSelf = msg.sendName === currentUid;-->
+<!--            const msgElement = document.createElement('div');-->
+<!--            msgElement.className = `chat-message ${isSelf ? 'self-message' : 'other-message'}`;-->
+<!--            msgElement.innerHTML = `-->
+<!--                    <div class="message-content">${msg.message}</div>-->
+<!--                    <div class="message-time">${new Date(msg.time).toLocaleTimeString()}</div>-->
+<!--                `;-->
+<!--            container.appendChild(msgElement);-->
+<!--        });-->
+<!--        container.scrollTop = container.scrollHeight;-->
+<!--    }-->
+
+<!--    // 其他交互函数-->
+<!--    function selectContact(name) {-->
+<!--        currentContact = name;-->
+<!--        document.getElementById('chatHeader').textContent = name;-->
+<!--        loadChatHistory();-->
+<!--    }-->
+
+<!--    async function loadChatHistory() {-->
+<!--        const history = await sendRequest(3, {-->
+<!--            receiveName: currentContact,-->
+<!--            time: new Date().toISOString()-->
+<!--        });-->
+<!--        chatHistory[currentContact] = history;-->
+<!--        renderChatHistory();-->
+<!--    }-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->

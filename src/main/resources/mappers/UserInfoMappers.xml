@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ch.webchatspring.mapper.UserInfoMapper">
+        <!-- 按 name 查询用户 -->
+    <select id="findByName" resultType="UserInfo">
+        SELECT * FROM user
+        WHERE name = #{name}
+    </select>
+    <select id="getUserUid" resultType="int">
+        select uid FROM user
+        WHERE name = #{name}
+    </select>
+    <select id="getUserName" resultType="String">
+        select name FROM user
+        WHERE uid = #{uid}
+    </select>
+    <select id="getUsersMessage" resultType="Message">
+        SELECT *
+        FROM chat_app.massage
+        WHERE (
+            (user_send_uid = #{user_send_uid} AND user_receiver_uid = #{user_receiver_uid})
+                OR
+            (user_send_uid = #{user_receiver_uid} AND user_receiver_uid = #{user_send_uid})
+            )
+          AND send_time &lt; #{send_time}
+        ORDER BY send_time DESC
+        LIMIT 20
+    </select>
+    <select id="getUserFriend" resultType="FriendInfo">
+            SELECT u.uid,u.name
+            FROM friend_info c
+                     JOIN user u ON (
+                (c.user_uid_one = #{uid} AND u.uid = c.user_uid_two) OR
+                (c.user_uid_two = #{uid} AND u.uid = c.user_uid_one)
+                )
+            WHERE #{uid} IN (c.user_uid_one, c.user_uid_two)
+    </select>
+    <select id="getNewMessage" resultType="Message">
+        SELECT
+        chat_id,
+        user_send_uid,
+        user_receiver_uid,
+        send_time,
+        message
+        FROM
+        message
+        WHERE
+        <!-- 只查询当前用户作为接收者的消息 -->
+        user_receiver_uid = #{receiverUid}
+        AND
+        <!-- 确保消息是在指定时间之后发送的 -->
+        send_time > #{timestamp}
+        ORDER BY
+        send_time ASC  <!-- 按时间升序排列，最早的消息在前 -->
+    </select>
+    <select id="getAiMessages" resultType="AiChat">
+        SELECT
+        role,          <!-- 角色：user/assistant/system等 -->
+        content AS message  <!-- 将content字段映射到AiChat类的message属性 -->
+        FROM
+        ai_chat
+        WHERE
+        uid = #{uid} AND
+        old_message = 0
+        ORDER BY
+        idai_chat ASC  <!-- 按主键升序排列，保证消息顺序 -->
+    </select>
+    <select id="getAiOdlMessages" resultType="AiChat">
+        SELECT
+        role,          <!-- 角色：user/assistant/system等 -->
+        content AS message  <!-- 将content字段映射到AiChat类的message属性 -->
+        FROM
+        ai_chat
+        WHERE
+        uid = #{uid} AND
+        old_message = 0 AND
+        role != 'system'
+        ORDER BY
+        idai_chat ASC  <!-- 按主键升序排列，保证消息顺序 -->
+    </select>
+    <update id="updateUserLoginStatus">
+        UPDATE user
+        SET
+        login_status = #{login_status}
+        WHERE
+        name = #{name}
+    </update>
+    <update id="deleteAiChatMessage">
+        UPDATE ai_chat
+        SET old_message = old_message + 1
+        WHERE uid = #{uid}
+    </update>
+    <insert id="userRegister" parameterType="UserInfo">
+        INSERT INTO user
+            (login_status, name)
+        VALUES
+            (#{login_status}, #{name})
+    </insert>
+    <insert id="sendMessage" parameterType="Message" useGeneratedKeys="true" keyProperty="chat_id">
+        INSERT INTO message (
+        user_send_uid,
+        user_receiver_uid,
+        send_time,
+        message
+        ) VALUES (
+        #{uid},           <!-- 发送者用户ID -->
+        #{receiverUid},   <!-- 接收者用户ID -->
+        #{timestamp},     <!-- 发送时间 -->
+        #{message}        <!-- 消息内容 -->
+        )
+    </insert>
+    <insert id="insertAiChatMessage" >
+    INSERT INTO ai_chat (
+        uid,        <!-- 用户ID -->
+        role,      <!-- 角色(user/assistant等) -->
+        content,
+        old_message
+    ) VALUES (
+        #{uid},     <!-- 方法参数: 用户ID -->
+        #{role},    <!-- 方法参数: 角色 -->
+        #{message},
+        0
+    )
+    </insert>
+</mapper>

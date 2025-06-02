@@ -1,0 +1,32 @@
+现在请你帮我写一个实时聊天软件的网页版前端html页面，这个页面类似与现在网页版DeepSeek聊天页面（要求同时让手机和电脑都正常显示），这个页面要包含三个部分，左侧选择功能栏:要包含两个按钮，第一个隐藏中间栏的按钮（再按一下可以打开），第二个让中间栏显示联系人，第三个能让中间栏变成搜索联系人功能。中间栏:能根据左侧栏的选择进行显示。右侧栏是显示当前对应人的聊天的页面。这个页面要美观（美学可以参考DeepSeek网页版的页面）这个项目的后端我是通过SpringBoot进行构建的，前端你可使用Thymeleaf进行书写，下面是前端和后端的沟通方式和沟通内容信息
+
+前端通过ajax返回Json方式给后端返回信息(Chat 类)，完整的Chat类我会附在该段提示词的最后，登录页面会使用重定向的url告诉前端当前用户的uid，这个uid需要前端定义一个变量进行存储。这个页面拿到uid的时候会仅执行一次从前端获取联系人的请求（可以理解为初始化联系人列表）。operateSymbol是作为请求的操作的代号下面是不同operateSymbol所代表的操作:
+0是心跳,1是刷新聊天(以获取最新的聊天),2是发送信息,3是获取历史聊天记录，4是获取联系人列表(前面的联系人请求就是使用的操作4)。
+0号操作位是前端每五秒自动向前端发送一次，让后端确保当前前端存活。
+0号操作每次发送时需要填入uid和operateSymbo和sendname其他的填Null（空值）
+1号操作位是每两秒自动向前段发送一次
+1号操作每次发送时要填入uid和operateSymbol其他的填Null(空值)，前端会返回和当前联系人的最新的消息或者返回空值（没有新消息就不渲染）
+2号操作是发送消息的操作，按下发送按钮进行，但是要检查输入框中的内容，不允许没有值或者只有空格。每次发送时要填入uid和operateSymbol和receiveName（根据当前选中联系人来定）和message和time（获前当前时间）
+3号操作是获取历史聊天记录，后端会返回早于这个时间的20条聊天记录，更多的聊天记录在用户点击后按照同样的方法获取，但是时间变量要变成之前获取的时间最早的聊天记录。该操作需要放入uid，operateSymbol，receiveName和time。
+4号操作是请求联系人列表，这个仅执行一次，相当于初始化页面，前端会以Json格式的键值对形式返回当前登录用户的所有好友，键是用户名，值是该用户头像地址。该操作需要放入uid和operateSymbol
+5号操作搜索好友请求，用户在搜索框中输入需要搜索的内容后（检查一下不允许是空值），填入uid和operateSymbol还有message。后端会通过Json返回符合要求的所有用户的用户名。如果没有好友前端会返回null。
+6号操作是添加好友请求，在上面5号操作将搜索后的结果，渲染到页面的同时给每一个渲染区域添加一个“添加好友”按钮，（因为是demo项目，点击添加就直接添加了，没有对方确认的步骤），添加之后在之前的联系人列表添加渲染这个联系人，后端会给你返回添加的联系人的姓名和头像地址的。该操作需要放入uid,operateSymbol，receiveName和 message
+以上是我的要求，请你严格按照我的要求的通信方式生成相应的前端页面
+
+
+
+package com.ch.webchatspring.model;
+
+import lombok.Data;
+
+import java.sql.Timestamp;
+
+@Data
+public class Chat {
+    private int uid;
+    private int operateSymbol;
+    private String sendName;
+    private String receiveName;
+    private String message;
+    private Timestamp time;
+}
