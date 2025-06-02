@@ -8,6 +8,10 @@
 
 当前版本为首个可运行版本，内部代码逻辑尚未优化，存在部分冗余代码（未使用）暂未移除。
 
+后端数据库部分是使用的Mybatic，后面学习后有时间会换成Mybatic-Plus
+
+前端部分有时间会考虑换成vue和TypeScript
+
 English:
 
 This project is a web-based chat application with a SpringBoot backend and Thymeleaf frontend, primarily designed to interact with the DeepSeek API.
