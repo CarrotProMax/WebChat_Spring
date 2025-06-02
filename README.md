@@ -14,6 +14,8 @@
 
 如果想要运行的话本地至少得有JDK和MySql数据库
 
+PS:不过目前代码的情况就是把本地的💩山向全世界公开了
+
 English:
 
 This project is a web-based chat application with a SpringBoot backend and Thymeleaf frontend, primarily designed to interact with the DeepSeek API.
