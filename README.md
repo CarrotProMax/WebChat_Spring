@@ -1,0 +1,17 @@
+项目概述 / Project Overview
+
+中文：
+
+本项目是一个基于 SpringBoot 后端和 Thymeleaf 模板前端的网页聊天程序，主要功能为调用 DeepSeek API 实现对话交互。
+
+具备用户登录控制及并发处理能力。
+
+当前版本为首个可运行版本，内部代码逻辑尚未优化，存在部分冗余代码（未使用）暂未移除。
+
+English:
+
+This project is a web-based chat application with a SpringBoot backend and Thymeleaf frontend, primarily designed to interact with the DeepSeek API.
+
+Features include user login control and concurrency support.
+
+The current version is the first operational release, with unoptimized internal code logic and some redundant (unused) code retained.
